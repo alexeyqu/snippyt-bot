@@ -26,11 +26,13 @@ def help(update, context):
 def execute(update, context):
     """Echo the user message."""
     try:
-        result = executer.execute_snippet(update.message.text, globals())
+        result, new_globals = executer.execute_snippet(update.message.text, globals())
+        logger.info('{} -- {} -- {}'.format(update.message.text, result, new_globals))
+        globals().update(new_globals)
     except BaseException as e:
         # anything could happen inside, even `exit()` call
         result = str(e)
-    logger.info('{} -- {}'.format(update.message.text, result))
+        logger.warning('Exception {} -- {}'.format(update.message.text, result))
     if result:
         update.message.reply_text(result)
 
