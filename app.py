@@ -27,14 +27,14 @@ class Snippyt:
         update.message.reply_text('Hi! Please send me some Python code.')
 
     def help(self, update, context):
-        """Send a message when the command /help is issued."""
-        print(update.message.text)
+        """Send a message when the command /help is issued"""
         update.message.reply_text('Help! Please send me more Python code.')
 
     def execute(self, update, context):
-        """Echo the user message."""
+        """Execute user input"""
         try:
             username = str(update.message.from_user.username)
+            # Get Python session from DB or create new
             if username in self.sessions:
                 pysess = self.db.get_session(username, self.sessions[username])
                 session_id = self.sessions[username]
@@ -43,11 +43,13 @@ class Snippyt:
                 pysess = ''
                 session_id = None
                 logger.info('{}: init new session'.format(username))
+            # Execute Python code
             text = update.message.text
             result, pysess = executer.execute_snippet(text, pysess)
             logger.info(
                 '{}: [In]:"{}"\t->\t[Out]:"{}"'.format(username, text, result)
             )
+            # Store result
             session_id = self.db.store_session(username, session_id, pysess)
             logger.info('{}: stored session {}'.format(username, session_id))
             self.sessions[username] = session_id

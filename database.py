@@ -40,21 +40,27 @@ class Storage:
         self.session = Session()
 
     def get_session(self, user, session_id):
+        # Query DB
         res = self.session.query(PySession).filter_by(id=session_id)
         if not res:
             raise LookupError(
                 'No session {} for {}'.format(session_id, user)
             )
         pysess = res.first()
+        # Check that we got the right session
         assert user == pysess.owner
         return pysess.code
 
     def store_session(self, user, session_id, code):
+        # We either
         if session_id is None:
+            # create new session
             pysess = PySession(owner=user, code=code)
             self.session.add(pysess)
         else:
+            # or modify existing one
             pysess = PySession(id=session_id, owner=user, code=code)
             self.session.merge(pysess)
+        # and commit it to db
         self.session.commit()
         return pysess.id
