@@ -3,20 +3,16 @@
 
 import io
 import sys
-import copy
-
-import timeout_decorator
 
 
-@timeout_decorator.timeout(5, use_signals=False)  # some dumb security
-def execute_snippet(snippet, globals_wrapper):
+def execute_snippet(new_code, code):
     """Temporary changes the standard output stream to capture exec output"""
-    existing_names = set(globals_wrapper.keys())
-
+    # just execute the existing code, without stream redirection
+    exec(code)
+    # execute new code, capture output
     temp_buffer = io.StringIO()
     sys.stdout = temp_buffer
-    exec(snippet, globals_wrapper)
+    exec(new_code)
     sys.stdout = sys.__stdout__
 
-    new_names = {k: v for k, v in globals_wrapper.items() if k not in existing_names}
-    return temp_buffer.getvalue(), new_names  # we need it to support multithreading
+    return temp_buffer.getvalue(), '{}\n{}'.format(code, new_code)
